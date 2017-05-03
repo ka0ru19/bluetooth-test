@@ -43,7 +43,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     func updateValue() {
         
         var data2 = self.characteristic.value
-        let reportData = UnsafePointer<UInt8>(data2.bytes)
+        let reportData = UnsafePointer<UInt8>(data2?.bytes)
         var bpm : UInt16
         bpm = UInt16(reportData[0])
         bpm = CFSwapInt16LittleToHost(bpm)
@@ -73,7 +73,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     }
     
     //セントラルマネージャの状態が変化すると呼ばれる
-    func centralManagerDidUpdateState(central: CBCentralManager!) {
+    func centralManagerDidUpdateState(_ central: CBCentralManager!) {
         
         print("state: \(central.state)")
     }
@@ -92,7 +92,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
         self.peripheral = peripheral
         
         // 接続開始
-        self.centralManager.connectPeripheral(self.peripheral, options: nil)
+        self.centralManager.connect(self.peripheral, options: nil)
         
     }
     
@@ -138,20 +138,20 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
             return
         }
         
-        let services: NSArray = peripheral.services
+        let services = peripheral.services
         
-        print("\(services.count) 個のサービスを発見！ \(services)")
-        
-        
+        print("\(services?.count) 個のサービスを発見！ \(services)")
         
         
         
-        for obj in services {
+        
+        
+        for obj in services! {
             
             if let service = obj as? CBService {
                 
                 // キャラクタリスティック探索開始
-                peripheral.discoverCharacteristics(nil, forService: service)
+                peripheral.discoverCharacteristics(nil, for: service)
                 
             }
         }
@@ -169,15 +169,15 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
             return
         }
         
-        let characteristics: NSArray = service.characteristics
-        print("\(characteristics.count) 個のキャラクタリスティックを発見！ \(characteristics)")
+        let characteristics = service.characteristics
+        print("\(characteristics?.count) 個のキャラクタリスティックを発見！ \(characteristics)")
         
         
         // 特定のキャラクタリスティックをプロパティに保持
         let uuid = CBUUID(string:"0001")
-        for aCharacteristic in characteristics {
+        for aCharacteristic in characteristics! {
             
-            if aCharacteristic.UUID == uuid {
+            if (aCharacteristic as AnyObject).uuid == uuid {
                 
                 
                 
@@ -203,7 +203,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
         } else {
             
             
-            print("Notify状態更新成功！characteristic UUID:\(characteristic.UUID), isNotifying: \(characteristic.isNotifying)")
+            print("Notify状態更新成功！characteristic UUID:\(characteristic.uuid), isNotifying: \(characteristic.isNotifying)")
         }
     }
     
@@ -218,7 +218,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
         } else {
             
             
-            print("データ更新！ characteristic UUID: \(characteristic.UUID), value: \(characteristic.value)")
+            print("データ更新！ characteristic UUID: \(characteristic.uuid), value: \(characteristic.value)")
             
             updateValue()
         }
@@ -253,18 +253,18 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
             // スキャン開始（特定サービスを持つペリフェラルに限定）
             
             let serviceUUIDs:[AnyObject] = [CBUUID(string:"0000")]
-            self.centralManager.scanForPeripheralsWithServices(serviceUUIDs, options: nil)
+            self.centralManager.scanForPeripherals(withServices: serviceUUIDs as! [CBUUID], options: nil)
             
             
             
             
-            sender.setTitle("STOP SCAN", forState: UIControlState.Normal)
+            sender.setTitle("STOP SCAN", for: UIControlState.normal)
         }
         else {
             // スキャン停止
             self.centralManager.stopScan()
             
-            sender.setTitle("START SCAN", forState: UIControlState.Normal)
+            sender.setTitle("START SCAN", for: UIControlState.normal)
             
             isScanning = false
         }
@@ -277,7 +277,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
         var valuemoto2 = 13
         var value: UInt8 = UInt8(valuemoto2 & 0xFF)
         var data = NSData(bytes: [value] as [UInt8], length: 1)
-        peripheral .writeValue(data, forCharacteristic: characteristic, type: CBCharacteristicWriteType.WithResponse)
+        peripheral.writeValue(data as Data, for: characteristic, type: CBCharacteristicWriteType.withResponse)
         
         
         
@@ -291,13 +291,13 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
             
             // Notify開始をリクエスト
             
-            self.peripheral .setNotifyValue(true, forCharacteristic: self.characteristic)
-            sender.setTitle("STOP NOTIFY",forState:UIControlState.Normal)
+            self.peripheral .setNotifyValue(true, for: self.characteristic)
+            sender.setTitle("STOP NOTIFY",for:UIControlState.normal)
         } else {
             
             // Notify停止をリクエスト
-            self.peripheral .setNotifyValue(false, forCharacteristic: self.characteristic)
-            sender.setTitle("START NOTIFY",forState:UIControlState.Normal)
+            self.peripheral .setNotifyValue(false, for: self.characteristic)
+            sender.setTitle("START NOTIFY",for:UIControlState.normal)
             
         }
         

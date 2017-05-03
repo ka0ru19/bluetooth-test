@@ -197,7 +197,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         }
         
         // リクエストに応答
-        self.peripheralManager.respondToRequest(requests[0] as! CBATTRequest, withResult: CBATTError.Success)
+        self.peripheralManager.respond(to: requests[0] as! CBATTRequest, withResult: CBATTError.success)
     }
     
     
@@ -239,11 +239,11 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         data = NSData(bytes: [value] as [UInt8], length: 1)
         
         // 値を更新
-        self.characteristic.value = data;
+        self.characteristic.value = data as! Data
         
         let result =  self.peripheralManager.updateValue(
-            data,
-            forCharacteristic: self.characteristic,
+            data as Data,
+            for: self.characteristic,
             onSubscribedCentrals: nil)
         
         print("resultだよ: \(result)")
@@ -262,11 +262,11 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         data = NSData(bytes: [value] as [UInt8], length: 1)
         
         // 値を更新
-        self.characteristic.value = data;
+        self.characteristic.value = data as! Data;
         
         let result =  self.peripheralManager.updateValue(
-            data,
-            forCharacteristic: self.characteristic,
+            data as Data,
+            for: self.characteristic,
             onSubscribedCentrals: nil)
         
         print("resultだよ: \(result)")
@@ -285,11 +285,11 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         data = NSData(bytes: [value] as [UInt8], length: 1)
         
         // 値を更新
-        self.characteristic.value = data;
+        self.characteristic.value = data as! Data;
         
         let result =  self.peripheralManager.updateValue(
-            data,
-            forCharacteristic: self.characteristic,
+            data as Data,
+            for: self.characteristic,
             onSubscribedCentrals: nil)
         
         print("resultだよ: \(result)")
@@ -305,11 +305,11 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         
         let value = UInt8(arc4random() & 0xFF)
         let data = NSData(bytes: [value] as [UInt8], length: 1)
-        self.characteristic.value = data;
+        self.characteristic.value = data as Data;
         
         let result =  self.peripheralManager.updateValue(
-            data,
-            forCharacteristic: self.characteristic,
+            data as Data,
+            for: self.characteristic,
             onSubscribedCentrals: nil)
         
         print("resultだよ: \(result)")

@@ -45,48 +45,36 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         // キャラクタリスティックを作成
         let characteristicUUID = CBUUID(string: "0001")
         
-        let properties = (
-            CBCharacteristicProperties.Notify |
-                CBCharacteristicProperties.Read |
-                CBCharacteristicProperties.Write)
-        
-        let permissions = (
-            CBAttributePermissions.Readable |
-                CBAttributePermissions.Writeable)
-        
-        self.characteristic = CBMutableCharacteristic(
-            type: characteristicUUID,
-            properties: properties,
-            value: nil,
-            permissions: permissions)
+        let properties: CBCharacteristicProperties = [.notify, .read, .write]
+        let permissions: CBAttributePermissions = [.readable, .writeable]
+        let characteristic = CBMutableCharacteristic(type: characteristicUUID, properties: properties,
+                                                     value: nil, permissions: permissions)
         
         // キャラクタリスティックをサービスにセット
         service.characteristics = [self.characteristic]
         
         // サービスを Peripheral Manager にセット
-        self.peripheralManager.addService(service)
+        self.peripheralManager.add(service)
         
         var msg: String = "0"
         
-        let data: NSData! = msg.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion:true)
-        println("data: \(data)")
+        let data: NSData = msg.data(using: String.Encoding.utf8, allowLossyConversion:true) as! NSData
+        print("data: \(data)")
         
-        self.characteristic.value = data;
+        self.characteristic.value = data as! Data
         
     }
     
     func startAdvertise() {
         
         // アドバタイズメントデータを作成する
-        let advertisementData: Dictionary = [
-            CBAdvertisementDataLocalNameKey: "Test Device",
-            CBAdvertisementDataServiceUUIDsKey: [self.serviceUUID]
-        ]
+        let advertisementData = [CBAdvertisementDataLocalNameKey: "Test Device"]
+        peripheralManager.startAdvertising(advertisementData)
+        
         
         // アドバタイズ開始
-        self.peripheralManager.startAdvertising(advertisementData)
         
-        self.advertiseBtn.setTitle("STOP ADVERTISING", forState: UIControlState.Normal)
+        self.advertiseBtn.setTitle("STOP ADVERTISING", for: UIControlState.normal)
     }
     
     func stopAdvertise () {
@@ -94,7 +82,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
         // アドバタイズ停止
         self.peripheralManager.stopAdvertising()
         
-        self.advertiseBtn.setTitle("START ADVERTISING", forState: UIControlState.Normal)
+        self.advertiseBtn.setTitle("START ADVERTISING", for: UIControlState.normal)
     }
     
     //データ送信
@@ -126,32 +114,39 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
     }
     
     // ペリフェラルマネージャの状態が変化すると呼ばれる
-    func peripheralManagerDidUpdateState(peripheral: CBPeripheralManager!) {
+    
+    func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+    
+    print("state: \(peripheral.state)")
         
-        println("state: \(peripheral.state)")
-        
-        switch peripheral.state {
-            
-        case CBPeripheralManagerState.PoweredOn:
-            // サービス登録開始
-            self.publishservice()
-            break
-            
-        default:
-            break
-        }
     }
     
+//    func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager!) {
+//        
+//        print("state: \(peripheral.state)")
+//        
+//        switch peripheral.state {
+//            
+//        case CBPeripheralManagerState.poweredOn:
+//            // サービス登録開始
+//            self.publishservice()
+//            break
+//            
+//        default:
+//            break
+//        }
+//    }
+//
     
     // サービス追加処理が完了すると呼ばれる
     func peripheralManager(peripheral: CBPeripheralManager!, didAddService service: CBService!, error: NSError!) {
         
         if (error != nil) {
-            println("サービス追加失敗！ error: \(error)")
+            print("サービス追加失敗！ error: \(error)")
             return
         }
         
-        println("サービス追加成功！")
+        print("サービス追加成功！")
         
         // アドバタイズ開始
         self.startAdvertise()
@@ -161,41 +156,39 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
     func peripheralManagerDidStartAdvertising(peripheral: CBPeripheralManager!, error: NSError!) {
         
         if (error != nil) {
-            println("アドバタイズ開始失敗！ error: \(error)")
+            print("アドバタイズ開始失敗！ error: \(error)")
             return
         }
         
-        println("アドバタイズ開始成功！")
+        print("アドバタイズ開始成功！")
     }
     
     // Readリクエスト受信時に呼ばれる
-    func peripheralManager(peripheral: CBPeripheralManager!, didReceiveReadRequest request: CBATTRequest!) {
+    
+    func peripheralManager(peripheral: CBPeripheralManager, didReceiveReadRequest request: CBATTRequest) {
         
-        println("Readリクエスト受信！ requested service uuid:\(request.characteristic.service.UUID) characteristic uuid:\(request.characteristic.UUID) value:\(request.characteristic.value)")
-        
-        // プロパティで保持しているキャラクタリスティックへのReadリクエストかどうかを判定
-        if request.characteristic.UUID.isEqual(self.characteristic.UUID) {
+        if request.characteristic.uuid.isEqual(characteristic.uuid) {
             
             // CBMutableCharacteristicのvalueをCBATTRequestのvalueにセット
-            request.value = self.characteristic.value;
+            request.value = characteristic.value
             
             // リクエストに応答
-            self.peripheralManager.respondToRequest(request, withResult: CBATTError.Success)
+            peripheralManager.respond(to: request, withResult: .success)
         }
     }
     
     // Writeリクエスト受信時に呼ばれる
     func peripheralManager(peripheral: CBPeripheralManager!, didReceiveWriteRequests requests: [AnyObject]!) {
         
-        println("\(requests.count) 件のWriteリクエストを受信！")
+        print("\(requests.count) 件のWriteリクエストを受信！")
         
         for obj in requests {
             
             if let request = obj as? CBATTRequest {
                 
-                println("Requested value:\(request.value) service uuid:\(request.characteristic.service.UUID) characteristic uuid:\(request.characteristic.UUID)")
+                print("Requested value:\(request.value) service uuid:\(request.characteristic.service.uuid) characteristic uuid:\(request.characteristic.uuid)")
                 
-                if request.characteristic.UUID.isEqual(self.characteristic.UUID) {
+                if request.characteristic.uuid.isEqual(self.characteristic.uuid) {
                     
                     // CBCharacteristicのvalueに、CBATTRequestのvalueをセット
                     self.characteristic.value = request.value;
@@ -211,15 +204,15 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
     // Notify開始リクエスト受信時に呼ばれる
     func peripheralManager(peripheral: CBPeripheralManager!, central: CBCentral!, didSubscribeToCharacteristic characteristic: CBCharacteristic!)
     {
-        println("Notify開始リクエストを受信")
-        println("Notify中のセントラル: \(self.characteristic.subscribedCentrals)")
+        print("Notify開始リクエストを受信")
+        print("Notify中のセントラル: \(self.characteristic.subscribedCentrals)")
     }
     
     // Notify停止リクエスト受信時に呼ばれる
     func peripheralManager(peripheral: CBPeripheralManager!, central: CBCentral!, didUnsubscribeFromCharacteristic characteristic: CBCharacteristic!)
     {
-        println("Notify停止リクエストを受信")
-        println("Notify中のセントラル: \(self.characteristic.subscribedCentrals)")
+        print("Notify停止リクエストを受信")
+        print("Notify中のセントラル: \(self.characteristic.subscribedCentrals)")
     }
     
     
@@ -253,7 +246,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
             forCharacteristic: self.characteristic,
             onSubscribedCentrals: nil)
         
-        println("resultだよ: \(result)")
+        print("resultだよ: \(result)")
         
         
         
@@ -276,7 +269,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
             forCharacteristic: self.characteristic,
             onSubscribedCentrals: nil)
         
-        println("resultだよ: \(result)")
+        print("resultだよ: \(result)")
         
         
         
@@ -299,7 +292,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
             forCharacteristic: self.characteristic,
             onSubscribedCentrals: nil)
         
-        println("resultだよ: \(result)")
+        print("resultだよ: \(result)")
         
         
         
@@ -319,7 +312,7 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
             forCharacteristic: self.characteristic,
             onSubscribedCentrals: nil)
         
-        println("resultだよ: \(result)")
+        print("resultだよ: \(result)")
         
         
         

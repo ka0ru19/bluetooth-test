@@ -42,8 +42,9 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     //データを表示
     func updateValue() {
         
-        var data2 = self.characteristic.value
-        let reportData = UnsafePointer<UInt8>(data2?.bytes)
+        var data2: NSData = self.characteristic.value as! NSData
+        let reportData = data2.bytes.assumingMemoryBound(to: UInt8.self)
+        
         var bpm : UInt16
         bpm = UInt16(reportData[0])
         bpm = CFSwapInt16LittleToHost(bpm)

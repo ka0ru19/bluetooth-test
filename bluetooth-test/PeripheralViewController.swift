@@ -88,7 +88,8 @@ class PreipheralViewController: UIViewController, CBPeripheralManagerDelegate {
     //データ送信
     func updateValueLabel () {
         
-        let reportData = UnsafePointer<UInt8>(data.bytes)
+//        let reportData = UnsafePointer<UInt8>(data.bytes)
+        let reportData = data.bytes.assumingMemoryBound(to: UInt8.self)
         var bpm : UInt16
         bpm = UInt16(reportData[0])
         bpm = CFSwapInt16LittleToHost(bpm)

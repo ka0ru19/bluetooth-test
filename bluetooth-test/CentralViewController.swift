@@ -6,6 +6,8 @@
 //  Copyright © 2017年 Wataru Inoue. All rights reserved.
 //
 
+import UIKit
+import CoreBluetooth
 
 //プロパティ定義
 class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
@@ -73,7 +75,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     //セントラルマネージャの状態が変化すると呼ばれる
     func centralManagerDidUpdateState(central: CBCentralManager!) {
         
-        println("state: \(central.state)")
+        print("state: \(central.state)")
     }
     
     //周辺にあるデバイスを発見すると呼ばれる
@@ -82,7 +84,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
                         advertisementData: [NSObject : AnyObject]!,
                         RSSI: NSNumber!)
     {
-        println("発見したBLEデバイス: \(peripheral)")
+        print("発見したBLEデバイス: \(peripheral)")
         
         self.peripheral = peripheral
         
@@ -98,7 +100,7 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     func centralManager(central: CBCentralManager!,
                         didConnectPeripheral peripheral: CBPeripheral!)
     {
-        println("接続成功！")
+        print("接続成功！")
         
         // サービス探索結果を受け取るためにデリゲートをセット
         peripheral.delegate = self
@@ -112,14 +114,14 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
                         didFailToConnectPeripheral peripheral: CBPeripheral!,
                         error: NSError!)
     {
-        println("接続失敗・・・")
+        print("接続失敗・・・")
     }
     
     func centralManager(central: CBCentralManager!,didDisconnectPeripheral peripheral:CBPeripheral!,error: NSError!) {
-        println("接続が切断されました。")
+        print("接続が切断されました。")
         
         if error != nil {
-            println("エラー: \(error)")
+            print("エラー: \(error)")
         }
         
         self.peripheral = nil;
@@ -132,13 +134,13 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     func peripheral(peripheral: CBPeripheral!, didDiscoverServices error: NSError!) {
         
         if error != nil {
-            println("エラー: \(error)")
+            print("エラー: \(error)")
             return
         }
         
         let services: NSArray = peripheral.services
         
-        println("\(services.count) 個のサービスを発見！ \(services)")
+        print("\(services.count) 個のサービスを発見！ \(services)")
         
         
         
@@ -163,12 +165,12 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
                     error: NSError!)
     {
         if error != nil {
-            println("エラー: \(error)")
+            print("エラー: \(error)")
             return
         }
         
         let characteristics: NSArray = service.characteristics
-        println("\(characteristics.count) 個のキャラクタリスティックを発見！ \(characteristics)")
+        print("\(characteristics.count) 個のキャラクタリスティックを発見！ \(characteristics)")
         
         
         // 特定のキャラクタリスティックをプロパティに保持
@@ -196,12 +198,12 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     func peripheral(peripheral: CBPeripheral!, didUpdateNotificationStateForCharacteristic characteristic:CBCharacteristic!, error: NSError!)
     {
         if error != nil {
-            println("Notify状態更新失敗...error:%@", error)
+            print("Notify状態更新失敗...error:%@", error)
             
         } else {
             
             
-            println("Notify状態更新成功！characteristic UUID:\(characteristic.UUID), isNotifying: \(characteristic.isNotifying)")
+            print("Notify状態更新成功！characteristic UUID:\(characteristic.UUID), isNotifying: \(characteristic.isNotifying)")
         }
     }
     
@@ -210,13 +212,13 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     {
         
         if error != nil {
-            println("データ更新通知エラー:%@", error)
+            print("データ更新通知エラー:%@", error)
             return
             
         } else {
             
             
-            println("データ更新！ characteristic UUID: \(characteristic.UUID), value: \(characteristic.value)")
+            print("データ更新！ characteristic UUID: \(characteristic.UUID), value: \(characteristic.value)")
             
             updateValue()
         }
@@ -228,12 +230,12 @@ class CentralViewController: UIViewController, CBCentralManagerDelegate, CBPerip
     func peripheral(peripheral: CBPeripheral!, didWriteValueForCharacteristic characteristic: CBCharacteristic!, error: NSError!) {
         
         if error != nil {
-            println("Write失敗...error:%@", error)
+            print("Write失敗...error:%@", error)
             
         } else {
             
             
-            println("Write成功！")
+            print("Write成功！")
             // このキャラクタリスティックの値には実はまだ更新が反映されていない
             updateValue()
         }
